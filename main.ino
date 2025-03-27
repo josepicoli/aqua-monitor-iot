@@ -17,8 +17,6 @@
 //#define YELLOW   0xFFE0 
 //#define WHITE    0xFFFF
 
-const int LED = 2;
-
 //const int PINO_ONEWIRE = 12; // Define pino do sensor
 //OneWire oneWire(PINO_ONEWIRE); // Cria um objeto OneWire
 //DallasTemperature sensor(&oneWire); // Informa a referencia da biblioteca dallas temperature para Biblioteca onewire
@@ -28,7 +26,7 @@ Adafruit_SSD1306 oled(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
 void setup() {
     Serial.begin(9600);
-    pinMode(LED, OUTPUT);
+    pinMode(LED_BUILTIN, OUTPUT);
 	oled.begin(SSD1306_SWITCHCAPVCC, 0x3C);
     //sensor.begin(); ; // Inicia o sensor
 }
@@ -76,12 +74,12 @@ void show(float temp, int ph) {
 //}
 
 void blink() {
-    digitalWrite(LED, HIGH);
+    digitalWrite(LED_BUILTIN, HIGH);
     delay(300);
-    digitalWrite(LED, LOW);
+    digitalWrite(LED_BUILTIN, LOW);
     delay(300);
 }
-
+        
 void loop() {
     show(25.5, 14);
     blink();
