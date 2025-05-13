@@ -15,7 +15,7 @@ const float ph10Value = 1100; // Valor lido para pH 10.0
 
 const int LED = 2;
 const int sensor_ph = 34;
-const int PINO_ONEWIRE = 12;
+const int PINO_ONEWIRE = 13;
 OneWire oneWire(PINO_ONEWIRE);
 DallasTemperature sensor_temp(&oneWire);
 DeviceAddress endereco_temp;
