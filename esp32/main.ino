@@ -20,8 +20,8 @@ OneWire oneWire(PINO_ONEWIRE);
 DallasTemperature sensor_temp(&oneWire);
 DeviceAddress endereco_temp;
 
-const char* ssid = "teste"; // nome da sua rede
-const char* password = "1234";  // senha do Wi-Fi
+const char* ssid = ""; // nome da sua rede
+const char* password = "";  // senha do Wi-Fi
 HTTPClient http; // Criação do objeto HTTPClient
 
 Adafruit_SSD1306 oled(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
@@ -31,7 +31,7 @@ void setup() {
     pinMode(LED, OUTPUT);
 	oled.begin(SSD1306_SWITCHCAPVCC, 0x3C);
     sensor_temp.begin();
-    analogReadResolution(12);
+    pinMode(sensor_ph, INPUT);
 
     // Conectar ao Wi-Fi
     WiFi.begin(ssid, password);
@@ -71,27 +71,26 @@ void show(float temp, float ph) {
 
 float temp() {
     sensor_temp.requestTemperatures();
-    if (!sensor_temp.getAddress(endereco_temp,0)) { 
+    if (!sensor_temp.getAddress(endereco_temp, 0)) { 
         Serial.println("SENSOR_temp NAO CONECTADO");
         return -127.0;
-    } else {
-        Serial.print("Temperatura = ");
-        Serial.println(sensor_temp.getTempC(endereco_temp), 1);
-       return sensor_temp.getTempC(endereco_temp);
     }
+    float temperatura = sensor_temp.getTempC(endereco_temp);
+    Serial.print("Temperatura = ");
+    Serial.println(temperatura, 1);
+    return temperatura;
+}
+
+float mapfloat(float x, float in_min, float in_max, float out_min, float out_max) {
+  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
 float ph() {
-    int rawValue = analogRead(sensor_ph);
-    
-    if (rawValue >= ph7Value) { // Se estiver entre pH7 e pH4
-        float slope = (7.0 - 4.0) / (ph7Value - ph4Value);
-        return 7.0 + slope * (ph7Value - rawValue);
-    }
-    else { // Se estiver entre pH7 e pH10
-        float slope = (10.0 - 7.0) / (ph10Value - ph7Value);
-        return 7.0 + slope * (ph7Value - rawValue);
-    }
+    int leitura = analogRead(sensor_ph);
+    float ph = mapfloat(leitura, 1200, 2800, 2.5, 9.0);
+    Serial.print("pH = ");
+    Serial.println(ph, 1);
+    return ph;
 }
 
 void sendToAPI(float temp, float ph, String uri) {
@@ -122,25 +121,27 @@ void blink() {
 }
 
 void loop() {
-    float ph = ph();
-    float temp = temp();
-    show(temp, ph);
-    sendToAPI(temp, ph, "127.0.0.1:5000");
+    float phValue = ph();
+    float tempValue = temp();
+    show(tempValue, phValue);
+    sendToAPI(tempValue, phValue, "127.0.0.1:5000");
     blink();
-    delay(5000);
+    delay(3000);
 }
 
 // OLED PINOS
 // GND  ->  GND
-// VCC  ->  3V3
-// SCL  ->  D22
+// VDD  ->  3V3
+// SCK  ->  D22
 // SDA  ->  D21
 
 // TEMP PINOS
 // GND  ->  GND
 // VCC  ->  3V3
-// DATA ->  D12
+// DATA ->  D12 + Resistor 4.7KΩ para VCC
 
 // PH PINOS
 // GND  ->  GND
-// 
+// GND  ->  GND
+// PO   ->  A34
+// V++  ->  3V3
