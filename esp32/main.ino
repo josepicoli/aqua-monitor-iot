@@ -14,7 +14,7 @@ const float ph7Value = 1300; // Valor lido para pH 7.0
 const float ph10Value = 1100; // Valor lido para pH 10.0
 
 const int LED = 2;
-const int led_red = 23;
+const int led_red = 32;
 const int led_green = 25;
 const int sensor_ph = 34;
 const int PINO_ONEWIRE = 13;
@@ -141,10 +141,10 @@ bool updateLedStatus(float temp, float ph) {
 }
 
 void loop() {
-    float phValue = ph();
+    float phValue = _ph();
     float tempValue = temp();
     show(tempValue, phValue);
-    sendToAPI(tempValue, phValue, updateLedStatus(), "127.0.0.1:5000");
+    sendToAPI(tempValue, phValue, updateLedStatus(tempValue, phValue), "127.0.0.1:5000");
     blink();
     delay(3000);
 }
@@ -172,4 +172,4 @@ void loop() {
 
 // LED VERMELHO
 // CÁTODO  ->  GND + Resistor 150Ω
-// ÂNODO   ->  D23
+// ÂNODO   ->  D32
