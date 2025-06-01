@@ -101,14 +101,14 @@ float _ph() {
     return (float)random(720, 750) / 100.00;
 }
 
-void sendToAPI(float temp, float ph, bool alert, String uri) {
+void sendToAPI(float temp, float ph, bool alert, String msg, String uri) {
     if (WiFi.status() == WL_CONNECTED) {
         String url = "http://" + uri + "/data";
         http.begin(url);
         http.addHeader("Content-Type", "application/json");
 
         // Cria JSON para enviar
-        String json = "{\"ph\":" + String(ph, 1) + ", \"temperatura\":" + String(temp, 1) + ", \"aviso\":" + String(alert) + "}";
+        String json = "{\"ph\":" + String(ph, 1) + ", \"temperatura\":" + String(temp, 1) + ", \"aviso\":" + String(alert) + ", \"msg\":" + msg + "}";
 
         // Envia POST
         int resposta = http.POST(json);
@@ -140,11 +140,37 @@ bool updateLedStatus(float temp, float ph) {
     }
 }
 
+String generateMessage(float temp, float ph) {
+    String msg1 = "";
+    String msg2 = "";
+
+    if(temp < 25) {
+        msg1 = "\nA temperatura atual da água está em " + String(temp, 1) + "°C — AUMENTE para manter entre 25°C e 28°C!";
+    }
+
+    if(temp > 28) {
+        msg1 = "\nA temperatura atual da água está em " + String(temp, 1) + "°C — DIMINUA para manter entre 25°C e 28°C!";
+    }
+
+    if(ph < 7) {
+        msg2 = "\nO pH atual da água está em " + String(ph, 1) + " — AUMENTE para manter entre 7 e 8.5!";
+    }
+
+    if(ph > 8.5) {
+        msg2 = "\nO pH atual da água está em " + String(ph, 1) + " — DIMINUA para manter entre 7 e 8.5!";
+    }
+
+    return msg1 + msg2;
+}
+
 void loop() {
     float phValue = _ph();
     float tempValue = temp();
+    bool alertValue = updateLedStatus(tempValue, phValue);
+    String msgValue = generateMessage(tempValue, phValue);
+
     show(tempValue, phValue);
-    sendToAPI(tempValue, phValue, updateLedStatus(tempValue, phValue), "127.0.0.1:5000");
+    sendToAPI(tempValue, phValue, alertValue, msgValue, "127.0.0.1:5000");
     blink();
     delay(3000);
 }

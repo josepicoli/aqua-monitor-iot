@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 import requests
+import smtplib
 
 app = Flask(__name__)
 
@@ -11,6 +12,15 @@ PIN_LED_GREEN = "V2"
 PIN_LED_RED = "V3"
 BLYNK_BASE_URL = "https://blynk.cloud/external/api/update"  # URL da API do Blynk
 
+def send_to_email(destination_email, msg):
+    smtpObj = smtplib.SMTP('smtp.gmail.com', 587)
+    smtpObj.ehlo()
+    smtpObj.starttls()
+    user = ""
+    password = ""
+    smtpObj.login(user, password)
+    smtpObj.sendmail(user, destination_email, f'Subject: Aviso{msg}')
+    smtpObj.quit()
 
 @app.route('/data', methods=['POST'])
 def receive_data():
@@ -21,7 +31,8 @@ def receive_data():
     {
         "ph": valor_ph,
         "temperatura": valor_temperatura,
-        "aviso": valor_aviso
+        "aviso": valor_aviso,
+        "msg": valor_msg
     }
     
     Retorna:
@@ -36,11 +47,12 @@ def receive_data():
         ph_value = data.get('ph')
         temp_value = data.get('temperatura')
         alert_value = data.get('aviso')
+        msg_value = data.get('msg')
 
-        if ph_value is None or temp_value is None or alert_value is None:
-            return jsonify({"error": "Dados de pH, temperatura ou aviso ausentes."}), 400
+        if ph_value is None or temp_value is None or alert_value is None or msg_value is None:
+            return jsonify({"error": "Dados de pH, temperatura, aviso ou msg ausentes."}), 400
 
-        print(f"Dados recebidos: pH = {ph_value}, Temperatura = {temp_value}, Aviso = {bool(alert_value)}")
+        print(f"Dados recebidos: pH = {ph_value}, Temperatura = {temp_value}, Aviso = {bool(alert_value)}, msg = {msg_value}")
 
         # Envia pH para o Blynk
         response_ph = requests.get(
@@ -60,13 +72,17 @@ def receive_data():
             requests.get(f"{BLYNK_BASE_URL}?token={BLYNK_AUTH}&{PIN_LED_GREEN}=0")
             response_alert = requests.get(f"{BLYNK_BASE_URL}?token={BLYNK_AUTH}&{PIN_LED_RED}=1")
 
+        # Enviar aviso para o email
+        if(not alert_value):
+            send_to_email("...@gmail.com", msg_value)
+
         return jsonify({
             "message": "Dados enviados ao Blynk!",
             "blynk_response_ph": response_ph.text,
             "blynk_response_temp": response_temp.text,
             "blynk_response_alert": response_alert.text
-        }), 200
-
+        }), 200    
+    
     except Exception as e:
         return jsonify({"error": f"Erro ao processar JSON: {str(e)}"}), 400
 
