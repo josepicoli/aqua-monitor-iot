@@ -108,8 +108,10 @@ void sendToAPI(float temp, float ph, bool alert, String msg, String uri) {
         http.addHeader("Content-Type", "application/json");
 
         // Cria JSON para enviar
-        String json = "{\"ph\":" + String(ph, 1) + ", \"temperatura\":" + String(temp, 1) + ", \"aviso\":" + String(alert) + ", \"msg\":" + msg + "}";
-
+        String json = "{\"ph\":" + String(ph, 1) + 
+              ", \"temperatura\":" + String(temp, 1) + 
+              ", \"aviso\":" + String(alert) + 
+              ", \"msg\":\"" + msg + "\"}";
         // Envia POST
         int resposta = http.POST(json);
         Serial.print("Resposta da API: ");
@@ -144,20 +146,20 @@ String generateMessage(float temp, float ph) {
     String msg1 = "";
     String msg2 = "";
 
-    if(temp < 25) {
-        msg1 = "\nA temperatura atual da água está em " + String(temp, 1) + "°C — AUMENTE para manter entre 25°C e 28°C!";
+    if (temp < 25) {
+        msg1 = "A temperatura da agua esta em " + String(temp, 1) + "C. Aumente para manter entre 25C e 28C. ";
     }
 
-    if(temp > 28) {
-        msg1 = "\nA temperatura atual da água está em " + String(temp, 1) + "°C — DIMINUA para manter entre 25°C e 28°C!";
+    if (temp > 28) {
+        msg1 = "A temperatura da agua esta em " + String(temp, 1) + "C. Diminua para manter entre 25C e 28C. ";
     }
 
-    if(ph < 7) {
-        msg2 = "\nO pH atual da água está em " + String(ph, 1) + " — AUMENTE para manter entre 7 e 8.5!";
+    if (ph < 7) {
+        msg2 = "O pH da agua esta em " + String(ph, 1) + ". Aumente para manter entre 7 e 8.5. ";
     }
 
-    if(ph > 8.5) {
-        msg2 = "\nO pH atual da água está em " + String(ph, 1) + " — DIMINUA para manter entre 7 e 8.5!";
+    if (ph > 8.5) {
+        msg2 = "O pH da agua esta em " + String(ph, 1) + ". Diminua para manter entre 7 e 8.5. ";
     }
 
     return msg1 + msg2;

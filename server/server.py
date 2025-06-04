@@ -19,7 +19,8 @@ def send_to_email(destination_email, msg):
     user = ""
     password = ""
     smtpObj.login(user, password)
-    smtpObj.sendmail(user, destination_email, f'Subject: Aviso{msg}')
+    for i in destination_email:
+        smtpObj.sendmail(user, i, f'Subject: Aviso\n{msg}')
     smtpObj.quit()
 
 @app.route('/data', methods=['POST'])
@@ -65,7 +66,7 @@ def receive_data():
         )
 
         # Envia aviso para o Blynk
-        if(alert_value):
+        if(int(alert_value)):
             requests.get(f"{BLYNK_BASE_URL}?token={BLYNK_AUTH}&{PIN_LED_RED}=0")
             response_alert = requests.get(f"{BLYNK_BASE_URL}?token={BLYNK_AUTH}&{PIN_LED_GREEN}=1")
         else:
@@ -73,8 +74,8 @@ def receive_data():
             response_alert = requests.get(f"{BLYNK_BASE_URL}?token={BLYNK_AUTH}&{PIN_LED_RED}=1")
 
         # Enviar aviso para o email
-        if(not alert_value):
-            send_to_email("...@gmail.com", msg_value)
+        if(not int(alert_value)):
+            send_to_email(["...@gmail.com"], msg_value)
 
         return jsonify({
             "message": "Dados enviados ao Blynk!",
@@ -84,6 +85,7 @@ def receive_data():
         }), 200    
     
     except Exception as e:
+        print(f"Erro ao processar dados: {e}")
         return jsonify({"error": f"Erro ao processar JSON: {str(e)}"}), 400
 
 
